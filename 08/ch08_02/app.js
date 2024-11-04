@@ -1,6 +1,7 @@
 const express = require('express');
 const path = require('path');
 const models = require('./models');
+const multer = require('multer');
 
 const app = express();
 const PORT = 3000;
@@ -8,12 +9,31 @@ const PORT = 3000;
 app.use(express.json());
 app.use(express.urlencoded({extended:true}));
 
-app.post("/posts", async(req, res) =>{
+app.use("/downloads", express.static(path.join(__dirname, "public/uploads")));
+//첨부파일
+const upload_dir = "public/uploads";
+const storage = multer.diskStorage({
+    destination: `./${upload_dir}`,
+    filename:function(req, file, cb){
+        cb(null, path.parse(file.originalname).name +
+        "-"+
+        Date.now() +
+        path.extname(file.originalname)
+        )
+    }
+});
+
+const upload = multer({storage:storage});
+
+app.post("/posts", upload.single("file"), async(req, res) =>{
     const {title, content, author} = req.body;
+    let filename = req.file ? req.file.filename:null;
+    filename = `/downloads/${filename}`;
     const post = await models.Post.create({
         title:title,
         content:content,
         author:author,
+        filename:filename,
     });
     res.status(201).json({post:post});
 });

@@ -8,7 +8,7 @@ const io = socketIo(server, {
     cors:{
         origin:"http://localhost:3000",
         credentials:true,
-        method:["GET","POST"]
+        methods:["GET","POST"]
     }
 });
 
